@@ -152,7 +152,7 @@ public class ConfigProperties {
 	private void readConfig(Properties properties) {
 		try {
 			if (properties.isEmpty()) {
-				this.setReady(false);
+				throw new IllegalArgumentException("Config properties cannot be empty.");
 			}
 			this.initializeDateFormat(properties);
 			this.initializeHolidayNames(properties);
