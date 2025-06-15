@@ -57,11 +57,37 @@ public class ConfigPropertiesTest {
 	}
 
 	@Test
+	public void shouldNotBeReadyByEmptyProperties() {
+		when(properties.isEmpty()).thenReturn(true);
+		configProperties = new ConfigProperties(properties);
+		assertFalse(configProperties.isReady());
+		assertNull(configProperties.getHolidayDateFormat());
+	}
+
+	@Test
 	public void shouldNotBeReadyByInvalidDateFormat() {
 		when(properties.getProperty("holiday.date_format")).thenReturn("wtf");
 		configProperties = new ConfigProperties(properties);
 		assertFalse(configProperties.isReady());
 		assertNull(configProperties.getHolidayDateFormat());
+	}
+
+	@Test
+	public void shouldNotBeReadyByNullDateFormat() {
+		when(properties.getProperty("holiday.date_format")).thenReturn(null);
+		configProperties = new ConfigProperties(properties);
+		assertFalse(configProperties.isReady());
+		assertNull(configProperties.getHolidayDateFormat());
+	}
+
+	@Test
+	public void shouldNotBeReadyByNullHolidayNames() {
+		when(properties.getProperty("holiday.date_format")).thenReturn("dd/MM/yyyy");
+		when(properties.getProperty("holiday.details")).thenReturn(null);
+		configProperties = new ConfigProperties(properties);
+		assertFalse(configProperties.isReady());
+		assertNotNull(configProperties.getHolidayDateFormat());
+		assertNull(configProperties.getHolidayDetails());
 	}
 
 }
