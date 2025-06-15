@@ -3,13 +3,13 @@ package com.github.marlonlom.colombianholidayscalculator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -47,10 +47,10 @@ public class HolidaysCalculatorTest {
 	@Test
 	public void shouldNotReturnColombianHolidaysByEmptyConfigProperties() {
 		holidaysCalculator = new HolidaysCalculator(new LocalDateUtil(), configProperties);
-		JSONObject holidays = holidaysCalculator.getHolidays(2024);
-		assertNotNull(holidays);
-		assertTrue(holidays.isEmpty());
-		assertEquals(0, holidays.length());
+		HolidaysCalculatorResponse response = holidaysCalculator.getHolidays(2024);
+		assertNotNull(response);
+		assertFalse(response.isSuccess());
+		assertNotNull(response.getFailure());
 	}
 
 	@Test
@@ -58,31 +58,33 @@ public class HolidaysCalculatorTest {
 		handleMockHolidayDateFormat();
 		when(configProperties.getHolidayDetails()).thenReturn(List.of());
 		holidaysCalculator = new HolidaysCalculator(new LocalDateUtil(), configProperties);
-		JSONObject holidays = holidaysCalculator.getHolidays(2024);
-		assertNotNull(holidays);
-		assertTrue(holidays.isEmpty());
-		assertEquals(0, holidays.length());
+		HolidaysCalculatorResponse response = holidaysCalculator.getHolidays(2024);
+		assertNotNull(response);
+		assertFalse(response.isSuccess());
+		assertNotNull(response.getFailure());
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void shouldNotReturnColombianHolidaysByNoDateFormat() {
 		handleMockHolidayDetailsList();
 		holidaysCalculator = new HolidaysCalculator(new LocalDateUtil(), configProperties);
-		JSONObject holidays = holidaysCalculator.getHolidays(2024);
-		assertNotNull(holidays);
-		assertTrue(holidays.isEmpty());
-		assertEquals(0, holidays.length());
+		HolidaysCalculatorResponse response = holidaysCalculator.getHolidays(2024);
+		assertNotNull(response);
+		assertFalse(response.isSuccess());
+		assertNotNull(response.getFailure());
 	}
 
 	@Test
 	public void shouldShowColombianHolidaysFor2024() {
 		handleMockHolidayDateFormat();
 		handleMockHolidayDetailsList();
+		when(configProperties.isReady()).thenReturn(Boolean.TRUE);
 		holidaysCalculator = new HolidaysCalculator(new LocalDateUtil(), configProperties);
-		JSONObject holidays = holidaysCalculator.getHolidays(2024);
-		System.out.println(String.format("holidays =%s", holidays.toString()));
-		assertNotNull(holidays);
-		assertFalse(holidays.isEmpty());
-		assertEquals(20, holidays.length());
+		HolidaysCalculatorResponse response = holidaysCalculator.getHolidays(2024);
+		System.out.println(String.format("holidays =%s", response.getHolidays().toString()));
+		assertNotNull(response);
+		assertTrue(response.isSuccess());
+		assertNull(response.getFailure());
+		assertEquals(20, response.getHolidays().size());
 	}
 }
