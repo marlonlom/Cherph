@@ -104,8 +104,9 @@ public class ConfigProperties {
 		if (holidayDetailsString == null || holidayDetailsString.trim().isEmpty()) {
 			throw new IllegalArgumentException("Holiday names text property cannot be empty.");
 		}
-		this.setHolidayDetails(Arrays.stream(holidayDetailsString.split(";")).map(String::trim)
-				.filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+		List<String> holidayDetails = Arrays.stream(holidayDetailsString.split(";")).map(String::trim)
+				.collect(Collectors.toList());
+		this.setHolidayDetails(holidayDetails);
 	}
 
 	/**
@@ -156,9 +157,7 @@ public class ConfigProperties {
 			}
 			this.initializeDateFormat(properties);
 			this.initializeHolidayNames(properties);
-			final boolean isConfigReady = this.getHolidayDateFormat() != null
-					&& (this.getHolidayDetails() != null && !this.getHolidayDetails().isEmpty());
-			this.setReady(isConfigReady);
+			this.setReady(true);
 		} catch (RuntimeException runtimeException) {
 			this.setReady(false);
 			System.err.println("readConfig / failed ".concat(runtimeException.getMessage()));

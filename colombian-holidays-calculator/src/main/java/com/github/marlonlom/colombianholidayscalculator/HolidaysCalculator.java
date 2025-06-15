@@ -6,11 +6,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.json.JSONObject;
-
 import com.github.marlonlom.colombianholidayscalculator.config.ConfigProperties;
 import com.github.marlonlom.colombianholidayscalculator.domain.HolidayDates;
-import com.github.marlonlom.colombianholidayscalculator.json.OrderedJSONObject;
 import com.github.marlonlom.colombianholidayscalculator.util.LocalDateUtil;
 
 /**
@@ -76,29 +73,42 @@ public class HolidaysCalculator {
 	private String getHolidayDate(int pos, Integer year) {
 		Optional<HolidayDates> optionalHolidayDate = HolidayDates.indexOf(pos);
 		if (!optionalHolidayDate.isPresent()) {
-			return "";
+			throw new IllegalArgumentException("Could not find a holiday date.");
 		}
 		final Date foundDate = optionalHolidayDate.get().getFindable().finDate(getLocalDateUtil(), year);
 		return getConfigProperties().getHolidayDateFormat().format(foundDate);
 	}
 
 	/**
-	 * Retrieves a JSON object containing holidays for a given year.
+	 * Retrieves a {@code HolidaysCalculatorResponse} object containing holidays for
+	 * a given year.
 	 *
 	 * @param year The year for which to retrieve holidays.
-	 * @return A {@code JSONObject} where keys represent holiday dates or names, and
-	 *         values are holiday details.
+	 * @return A {@code HolidaysCalculatorResponse} where keys represent holiday
+	 *         dates or names, and values are holiday details.
 	 */
-	public final JSONObject getHolidays(Integer year) {
-		JSONObject items = new OrderedJSONObject();
-		final List<String> holidayDetails = this.getConfigProperties().getHolidayDetails();
-		IntStream.range(0, holidayDetails.size())
-				.mapToObj(pos -> String.format("%s;%s", this.getHolidayDate(pos, year), holidayDetails.get(pos)))
-				.collect(Collectors.toList()).forEach(text -> {
-					String[] parts = text.split(";");
-					items.put(parts[0], parts[1]);
-				});
-		return items;
+	public final HolidaysCalculatorResponse getHolidays(Integer year) {
+		try {
+			System.out.println("getHolidays / starting");
+			final HolidaysCalculatorResponse response = new HolidaysCalculatorResponse(
+					getConfigProperties().getHolidayDateFormat().toPattern());
+			if (!getConfigProperties().isReady()) {
+				throw new IllegalArgumentException("Config properties not initialized.");
+			}
+			final List<String> holidayDetails = this.getConfigProperties().getHolidayDetails();
+			IntStream.range(0, holidayDetails.size())
+					.mapToObj(pos -> String.format("%s;%s", this.getHolidayDate(pos, year), holidayDetails.get(pos)))
+					.collect(Collectors.toList()).forEach(text -> {
+						String[] parts = text.split(";");
+						response.getHolidays().put(parts[0], parts[1]);
+					});
+			return response;
+		} catch (RuntimeException exception) {
+			System.err.println("getHolidays / failed");
+			return new HolidaysCalculatorResponse(exception);
+		} finally {
+			System.out.println("getHolidays / finished");
+		}
 	}
 
 	/**
