@@ -1,4 +1,4 @@
-package sw.malm.utilities.dates;
+package com.github.marlonlom.colombianholidayscalculator;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
